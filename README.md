@@ -5,6 +5,9 @@
 
 [Mirakurun](https://github.com/Chinachu/Mirakurun) 用映像視聴アプリ実装研究資料<br />
 
+> [!NOTE]
+> MirakTest は開発を終了しました。macOS/iOS 向けの代替実装として [kiririn](https://github.com/ci7lus/kiririn) を開発しています。
+
 ## 概要
 
 MirakTest は macOS / Windows / Linux 上で Mirakurun を利用しデジタル放送を視聴するアプリの実装を研究する目的で配布される研究資料です。本アプリに CAS 処理は含まれていないため、デコードされていない放送データを視聴することは出来ません。<br />
