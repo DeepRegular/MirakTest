@@ -8,6 +8,7 @@ import {
   imageLoaderConfiguration,
   scssConfiguration,
   nodeConfiguration,
+  terserMinimizer,
 } from "./webpack-loaders"
 
 type MultiConfigurationFactory = (
@@ -52,6 +53,10 @@ const factory: MultiConfigurationFactory = (_, args) => {
           ".js",
         ],
         fallback: { path: require.resolve("path-browserify") },
+      },
+
+      optimization: {
+        minimizer: [terserMinimizer],
       },
 
       devServer: {

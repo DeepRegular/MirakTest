@@ -1,6 +1,6 @@
 import path from "path"
 import webpack from "webpack"
-import { babelLoaderConfiguration } from "./webpack-loaders"
+import { babelLoaderConfiguration, terserMinimizer } from "./webpack-loaders"
 
 const nodeConfiguration: webpack.RuleSetRule = {
   test: /\.node$/,
@@ -36,6 +36,7 @@ const config: webpack.Configuration = {
 
   optimization: {
     nodeEnv: false,
+    minimizer: [terserMinimizer],
   },
 }
 

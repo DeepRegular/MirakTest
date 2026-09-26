@@ -36,15 +36,17 @@ Windows 11 での動作を確認しています。
 #### Linux での実行
 
 実験的なサポートのため、環境によっては正しく動作しない可能性があります。<br>
-PRと発生した問題/解決方法を共有するための Issue は歓迎しますが、Issue は基本的に対応できません。<br>
+Debian 13 (trixie) での動作を確認しています。<br>
 ハードウェア支援周りの不具合については[こちら](https://github.com/ci7lus/MirakTest/wiki/Linux-%E3%81%AB%E3%81%8A%E3%81%91%E3%82%8B-libVLC-%E3%81%AE%E3%83%8F%E3%83%BC%E3%83%89%E3%82%A6%E3%82%A7%E3%82%A2%E6%94%AF%E6%8F%B4%E5%91%A8%E3%82%8A%E3%81%AE%E4%B8%8D%E5%85%B7%E5%90%88%E3%81%AB%E3%81%A4%E3%81%84%E3%81%A6)。<br />
-vlc の導入が必要です。debian の場合は以下のコマンドでインストールできます。
+VLC はシステムのものを使うので、先に導入してください。AppImage を使う場合は FUSE 2 のライブラリも必要です。Debian 13 では次のコマンドで入ります。
 
 ```bash
-apt-get install vlc
+sudo apt-get install vlc libfuse2t64
 ```
 
-AppImage に実行権限と `--no-sandbox` をつけて実行するか、アーカイブ版の `chrome-sandbox` を適切な権限に設定してください（[参考](https://github.com/Revolutionary-Games/Thrive/issues/749)）。
+AppImage に実行権限を付けて実行するか、アーカイブ版を展開して `miraktest` を実行してください。Debian 13 のようにユーザー名前空間が使える環境では `--no-sandbox` は要りません。使えない環境では `--no-sandbox` を付けるか、アーカイブ版の `chrome-sandbox` を適切な権限に設定してください（[参考](https://github.com/Revolutionary-Games/Thrive/issues/749)）。
+
+`miraktest` は Electron 本体（`miraktest.bin`）を起動するシェルスクリプトです。Electron は Chromium 用に機能を絞った FFmpeg（`libffmpeg.so`）を同梱しており、そのままでは libVLC がこちらを使ってしまいます。その FFmpeg には MPEG-2 のデコーダが無いので、放送が音だけで再生され、映像が出ません。スクリプトは、libVLC のプラグインが本来使う `libavcodec` などを `LD_PRELOAD` で先に読み込ませてから起動します。この処理を止めたいときは、環境変数 `MIRAKTEST_NO_LIBAV_PRELOAD=1` を設定してください。
 
 ### 開発版
 
@@ -98,17 +100,24 @@ yarn build
 
 ### Linux (debian)
 
+Node.js 20 と、それに付属する corepack（yarn 3 を使います）を用意してから進めてください。
+
 ```bash
 sudo apt-get install build-essential cmake libvlc-dev vlc
 git clone git@github.com:ci7lus/MirakTest.git
 cd MirakTest
+corepack enable
 yarn
 ./setup_wcjs.sh
 yarn build:tsc
 yarn dev:webpack
-yarn dev:electron
+yarn dev:electron:linux
 yarn build
 ```
+
+開発中は `yarn dev:electron` ではなく `yarn dev:electron:linux` で起動してください。前者は Electron をそのまま起動するので、上に書いた理由で映像が出ません。
+
+`yarn build` は、webpack の出力を Electron 自身に構文検査させてから（`yarn build:check`）パッケージを作ります。Node.js 20 以降の terser は、ビルドに使った Node.js の Unicode の表で「引用符なしのキーとして書けるか」を決めます。そのため、Electron 21 の V8 が識別子として読めない文字（`アニメ・特撮` の `・` など）を裸のまま出力し、画面がまったく起動しなくなることがありました。現在は webpack の設定でキーを常に引用符で囲むようにしてあります。
 
 ## 謝辞
 
