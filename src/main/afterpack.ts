@@ -1,19 +1,10 @@
 import child from "child_process"
 import fs from "fs"
 import path from "path"
+import type { LinuxPackager } from "app-builder-lib/out/linuxPackager"
 import axios from "axios"
-import { Arch, Target, Packager } from "electron-builder"
+import { AfterPackContext, Arch } from "electron-builder"
 import glob from "glob"
-
-// https://www.electron.build/configuration/configuration#afterpack
-interface AfterPackContext {
-  outDir: string
-  appOutDir: string
-  packager: Packager
-  electronPlatformName: string
-  arch: Arch
-  targets: Array<Target>
-}
 
 const exec = async (command: string) => {
   return await new Promise((res, rej) => {
@@ -56,6 +47,17 @@ exports.default = async (ctx: AfterPackContext) => {
     )
   } else if (ctx.electronPlatformName === "win32") {
     dest = path.resolve("./build/win-unpacked/")
+  } else if (ctx.electronPlatformName === "linux") {
+    // linux/launcher.sh に説明あり。Electron の libffmpeg.so が libVLC の
+    // avcodec を横取りしないよう、ランチャー経由で起動させる
+    console.info("起動用のラッパーを配置します")
+    const executable = path.join(
+      ctx.appOutDir,
+      (ctx.packager as LinuxPackager).executableName
+    )
+    await fs.promises.rename(executable, `${executable}.bin`)
+    await fs.promises.copyFile(path.resolve("./linux/launcher.sh"), executable)
+    await fs.promises.chmod(executable, 0o755)
   }
 
   console.info("libVLC の COPYRING, COPYRING.LIB をコピーします")
