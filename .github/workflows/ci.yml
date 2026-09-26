@@ -28,7 +28,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [24.x]
 
     steps:
       - uses: actions/checkout@v3
@@ -54,7 +54,7 @@ jobs:
 
     strategy:
       matrix:
-        node-version: [16.x]
+        node-version: [24.x]
         target:
           - x86_64-unknown-linux-gnu
           - x86_64-pc-windows-gnu

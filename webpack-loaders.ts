@@ -11,7 +11,7 @@ export const babelLoaderConfiguration: (b: boolean) => webpack.RuleSetRule = (
     options: {
       cacheDirectory: true,
       presets: [
-        ["@babel/preset-env", { targets: { electron: "19" } }],
+        ["@babel/preset-env", { targets: { chrome: "152" } }],
         "@babel/preset-typescript",
         [
           "@babel/preset-react",

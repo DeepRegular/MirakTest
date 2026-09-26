@@ -20,7 +20,9 @@ import electron, {
   globalShortcut,
   session,
   clipboard,
+  ClipboardItem,
   nativeImage,
+  NativeImage,
 } from "electron"
 import Store from "electron-store"
 import fontList from "font-list"
@@ -82,6 +84,11 @@ import {
 import { generateContentPlayerContextMenu } from "./contextmenu"
 import { EPGManager } from "./epgManager"
 import { exists, isChildOfHome, isHidden } from "./fsUtils"
+
+// 映像は WebGL で描いている。GPU が使えない（ブロックリスト入りを含む）環境では
+// 以前の Chromium は SwiftShader に自動で切り替えていたが、今は明示しないと
+// WebGL が作れず何も映らない。GPU が使える環境には影響しない
+app.commandLine.appendSwitch("enable-unsafe-swiftshader")
 
 let backgroundColor = "#111827"
 
@@ -992,6 +999,15 @@ ipcMain.handle(SET_WINDOW_BUTTON_VISIBILITY, (event, visibility: boolean) => {
   }
 })
 
+// Electron 44 で clipboard.writeImage が無くなり、ClipboardItem で書く形になった
+const writeImageToClipboard = async (image: NativeImage) => {
+  await clipboard.write([
+    new ClipboardItem({
+      "image/png": new Blob([image.toPNG()], { type: "image/png" }),
+    }),
+  ])
+}
+
 ipcMain.handle(SHOW_NOTIFICATION, (_, arg, path) => {
   const n = new Notification(arg)
   if (path) {
@@ -1010,7 +1026,7 @@ ipcMain.handle(REQUEST_WINDOW_SCREENSHOT, async (event, fileName: string) => {
   const fileNameWithExt = fileName + (keepQuality ? ".png" : ".jpg")
   const filePath = path.join(basePath, fileNameWithExt)
   const image = await window.webContents.capturePage()
-  clipboard.writeImage(image)
+  await writeImageToClipboard(image)
   await fs.promises.writeFile(
     filePath,
     keepQuality === true ? image.toPNG() : image.toJPEG(95)
@@ -1048,7 +1064,7 @@ ipcMain.handle(
   REQUEST_WRITE_IMAGE_TO_CLIPBOARD,
   async (_, arr: ArrayBuffer) => {
     const image = nativeImage.createFromBuffer(Buffer.from(arr))
-    clipboard.writeImage(image)
+    await writeImageToClipboard(image)
   }
 )
 

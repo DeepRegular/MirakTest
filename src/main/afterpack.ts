@@ -4,7 +4,6 @@ import path from "path"
 import type { LinuxPackager } from "app-builder-lib/out/linuxPackager"
 import axios from "axios"
 import { AfterPackContext, Arch } from "electron-builder"
-import glob from "glob"
 
 const exec = async (command: string) => {
   return await new Promise((res, rej) => {
@@ -31,12 +30,9 @@ exports.default = async (ctx: AfterPackContext) => {
       return
     }
     console.info("libVLC を Contents/Frameworks にコピーします")
-    const files = await new Promise<string[]>((res, rej) => {
-      glob(path.join(src, "*"), (err, files) => {
-        if (err) rej(err)
-        res(files)
-      })
-    })
+    const files = (await fs.promises.readdir(src))
+      .filter((name) => !name.startsWith("."))
+      .map((name) => path.join(src, name))
     for (const file of files) {
       await exec(`cp -Ra ${file} ${dest}`)
     }

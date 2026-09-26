@@ -46,6 +46,8 @@ sudo apt-get install vlc libfuse2t64
 
 AppImage に実行権限を付けて実行するか、アーカイブ版を展開して `miraktest` を実行してください。Debian 13 のようにユーザー名前空間が使える環境では `--no-sandbox` は要りません。使えない環境では `--no-sandbox` を付けるか、アーカイブ版の `chrome-sandbox` を適切な権限に設定してください（[参考](https://github.com/Revolutionary-Games/Thrive/issues/749)）。
 
+GPU が使えない環境（3D アクセラレーションの無い仮想マシンなど）では、画面が白いまま映像が出ないことがあります。その場合は `--disable-gpu-compositing` を付けて起動してください。映像の描画には WebGL を使っており、GPU が無いときはソフトウェア実装（SwiftShader）で描くようにしてあります。ただ、画面の合成までソフトウェア実装に任せると失敗する環境があるためです。
+
 `miraktest` は Electron 本体（`miraktest.bin`）を起動するシェルスクリプトです。Electron は Chromium 用に機能を絞った FFmpeg（`libffmpeg.so`）を同梱しており、そのままでは libVLC がこちらを使ってしまいます。その FFmpeg には MPEG-2 のデコーダが無いので、放送が音だけで再生され、映像が出ません。スクリプトは、libVLC のプラグインが本来使う `libavcodec` などを `LD_PRELOAD` で先に読み込ませてから起動します。この処理を止めたいときは、環境変数 `MIRAKTEST_NO_LIBAV_PRELOAD=1` を設定してください。
 
 ### 開発版
@@ -100,7 +102,7 @@ yarn build
 
 ### Linux (debian)
 
-Node.js 20 と、それに付属する corepack（yarn 3 を使います）を用意してから進めてください。
+Node.js 24 と、それに付属する corepack（yarn 3 を使います）を用意してから進めてください。Electron 44 に内蔵されている Node.js と同じ版です。
 
 ```bash
 sudo apt-get install build-essential cmake libvlc-dev vlc
@@ -117,7 +119,7 @@ yarn build
 
 開発中は `yarn dev:electron` ではなく `yarn dev:electron:linux` で起動してください。前者は Electron をそのまま起動するので、上に書いた理由で映像が出ません。
 
-`yarn build` は、webpack の出力を Electron 自身に構文検査させてから（`yarn build:check`）パッケージを作ります。Node.js 20 以降の terser は、ビルドに使った Node.js の Unicode の表で「引用符なしのキーとして書けるか」を決めます。そのため、Electron 21 の V8 が識別子として読めない文字（`アニメ・特撮` の `・` など）を裸のまま出力し、画面がまったく起動しなくなることがありました。現在は webpack の設定でキーを常に引用符で囲むようにしてあります。
+`yarn build` は、webpack の出力を Electron 自身に構文検査させてから（`yarn build:check`）パッケージを作ります。terser は、ビルドに使った Node.js の Unicode の表で「引用符なしのキーとして書けるか」を決めます。ビルドの Node.js と Electron の Unicode の版が食い違うと、Electron が識別子として読めない文字（`アニメ・特撮` の `・` など）を裸のまま出力し、画面がまったく起動しなくなります。Electron 21 のころに実際に起きたので、webpack の設定でキーを常に引用符で囲むようにしてあります。
 
 ## 謝辞
 

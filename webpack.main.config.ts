@@ -16,7 +16,7 @@ const config: webpack.Configuration = {
     path: path.resolve(__dirname, "dist/"),
   },
 
-  target: "node16",
+  target: "node24",
 
   module: {
     rules: [babelLoaderConfiguration(false), nodeConfiguration],
